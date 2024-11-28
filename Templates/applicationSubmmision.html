@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grant Request</title>
+</head>
+<body>
+    <h1>Submit Grant Request</h1>
+    <form id="grantRequestForm">
+        <label for="userId">User ID:</label><br>
+        <input type="number" id="userId" name="userId" required><br>
+        
+        <label for="vehicleId">Vehicle ID:</label><br>
+        <input type="number" id="vehicleId" name="vehicleId" required><br>
+        
+        <label for="grantAmount">Grant Amount:</label><br>
+        <input type="number" id="grantAmount" name="grantAmount" required><br><br>
+        
+        <button type="submit">Submit Request</button>
+    </form>
+    <script>
+        document.getElementById('grantRequestForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            const response = await fetch('/api/submitGrant', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+            const result = await response.json();
+            alert(result.message);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insert Vehicle</title>
+</head>
+<body>
+    <h1>Insert Vehicle</h1>
+    <form id="insertVehicleForm">
+        <label for="userId">User ID:</label><br>
+        <input type="number" id="userId" name="userId" required><br>
+        
+        <label for="make">Make:</label><br>
+        <input type="text" id="make" name="make" required><br>
+        
+        <label for="model">Model:</label><br>
+        <input type="text" id="model" name="model" required><br>
+        
+        <label for="year">Year:</label><br>
+        <input type="number" id="year" name="year" required><br>
+        
+        <label for="licensePlate">License Plate:</label><br>
+        <input type="text" id="licensePlate" name="licensePlate" required><br><br>
+        
+        <button type="submit">Add Vehicle</button>
+    </form>
+    <script>
+        document.getElementById('insertVehicleForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            const response = await fetch('/api/insertVehicle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+            const result = await response.json();
+            alert(result.message);
+        });
+    </script>
+</body>
+</html>

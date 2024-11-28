@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up | Electric Future</title>
+ <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="background">
+    <div class="container">
+      <div class="logo">
+        <img src="https://via.placeholder.com/100" alt="Electric Future Logo">
+      </div>
+      <div class="signup-box">
+        <h1>Create Your Account</h1>
+        <p class="subtitle">Join us on the journey to a sustainable future.</p>
+        <form action="/signUp" method="POST">
+          <!-- Personal Information -->
+          <div class="input-group">
+            <label for="first_name">First Name</label>
+            <input type="text" id="first_name" name="first_name" placeholder="Your First Name" required>
+          </div>
+          <div class="input-group">
+            <label for="last_name">Last Name</label>
+            <input type="text" id="last_name" name="last_name" placeholder="Your Last Name" required>
+          </div>
+          <div class="input-group">
+            <label for="birth_date">Birth Date</label>
+            <input type="date" id="birth_date" name="birth_date" required>
+          </div>
+          <div class="input-group">
+            <label for="gender">Gender</label>
+            <select id="gender" name="gender" required>
+              <option value="M">Male</option>
+              <option value="F">Female</option>
+            </select>
+          </div>
+
+          <!-- Account Information -->
+          <div class="input-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="Your Username" required>
+          </div>
+          <div class="input-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Create a strong password" required>
+          </div>
+          <div class="input-group">
+            <label for="identity_number">Identity Number</label>
+            <input type="text" id="identity_number" name="identity_number" placeholder="Your ID Number" required>
+          </div>
+          <div class="input-group">
+            <label for="user_type">User Type</label>
+            <select id="user_type" name="user_type" required>
+              <option value="LT">Λειτουργός Τμήματος Οδικών Μεταφορών</option>
+              <option value="AA">Αντιπρόσωπος Αυτοκινήτων</option>
+              <option value="AX">Απλός Χρήστης</option>
+            </select>
+          </div>
+
+          <!-- Legal Information -->
+          <div class="input-group">
+            <label for="valid_legalization">Valid Legalization</label>
+            <select id="valid_legalization" name="valid_legalization">
+              <option value="1">Yes</option>
+              <option value="0">No</option>
+            </select>
+          </div>
+          
+          <!-- Hidden fields to set default values -->
+          <input type="hidden" name="is_active" value="1">
+          <input type="hidden" name="registration_date" value="{{ current_date }}">
+          
+          <!-- Submit -->
+          <button type="submit" class="btn">Sign Up</button>
+        </form>
+        <p class="signin-link">Already have an account? <a href="{{ url_for('home') }}">Sign in here</a>.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
