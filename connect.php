@@ -1,27 +1,6 @@
 <?php
 // Start session
 session_start();
-
-// Debug: Check session variables
-// error_reporting(E_ALL);
-// ini_set('display_errors', 1);
-// print_r($_SESSION);
-
-// Validate session variables (if necessary)
-// if (!isset($_SESSION["serverName"]) || !isset($_SESSION["connectionOptions"])) {
-//     die("Session not initialized properly. Please return to the start page.");
-// }
-
-// Debug: Connect to database (Optional, if needed)
-// $connection = new mysqli(
-//     $_SESSION["serverName"],
-//     $_SESSION["connectionOptions"]["Uid"],
-//     $_SESSION["connectionOptions"]["PWD"],
-//     $_SESSION["connectionOptions"]["Database"]
-// );
-// if ($connection->connect_error) {
-//     die("Connection failed: " . $connection->connect_error);
-// }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -38,62 +17,66 @@ session_start();
     }
 
     body {
-      font-family: 'Arial', sans-serif;
-      line-height: 1.6;
-      color: #333;
-      background-color: #f9f9f9;
-    }
-
-    a {
-      text-decoration: none;
-      color: #0077cc;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    /* Background */
-    .background {
-      background: linear-gradient(to bottom right, #004c91, #00c7a3);
-      min-height: 100vh;
+      font-family: 'Roboto', sans-serif;
+      background: #f4f4f4; /* Light neutral background color */
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      color: #fff;
+      min-height: 100vh;
+      color: #333;
+    }
+
+    /* Header */
+    .header {
+      width: 100%; /* Full width */
+      height: 150px; /* Increased height */
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px 20px; /* Increased vertical padding */
+      display: flex;
+      justify-content: space-between; /* Align images across the width */
+      align-items: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+    }
+
+    .header img {
+      height: 120px; /* Increased image height */
+      flex: 1; /* Ensure images are evenly spaced */
+      object-fit: contain;
+      max-width: 300px;
+    }
+
+    .header img:nth-child(2) {
+      margin: 0 50px; /* Add extra spacing between the center image */
     }
 
     /* Container */
     .container {
-      background: #fff;
-      max-width: 500px;
-      width: 100%;
-      padding: 20px;
+      background: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
+      max-width: 400px;
+      width: 90%;
+      padding: 20px 30px;
       border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
       text-align: center;
+      margin-top: 200px; /* Add space for the header */
     }
 
-    /* Logo */
-    .logo img {
-      width: 80px;
-      margin-bottom: 20px;
-    }
-
-    /* Titles and Subtitles */
     h1 {
-      font-size: 1.8em;
-      margin-bottom: 10px;
+      font-size: 2rem;
       color: #004c91;
+      margin-bottom: 10px;
     }
 
     .subtitle {
-      font-size: 1em;
+      font-size: 1rem;
       margin-bottom: 20px;
       color: #666;
     }
 
-    /* Form Styles */
     form {
       display: flex;
       flex-direction: column;
@@ -105,9 +88,9 @@ session_start();
     }
 
     .input-group label {
-      font-weight: bold;
-      display: block;
+      font-weight: 500;
       margin-bottom: 5px;
+      display: block;
       color: #333;
     }
 
@@ -115,25 +98,26 @@ session_start();
     .input-group select {
       width: 100%;
       padding: 10px;
-      font-size: 1em;
-      border: 1px solid #ccc;
+      font-size: 1rem;
+      border: 1px solid #ddd;
       border-radius: 5px;
+      transition: all 0.3s ease;
     }
 
     .input-group input:focus,
     .input-group select:focus {
       border-color: #0077cc;
       outline: none;
+      box-shadow: 0 0 5px rgba(0, 119, 204, 0.5);
     }
 
-    /* Buttons */
     .btn {
       background: #00c7a3;
-      color: #fff;
+      color: white;
+      padding: 10px 20px;
       border: none;
-      padding: 10px 15px;
-      font-size: 1em;
       border-radius: 5px;
+      font-size: 1rem;
       cursor: pointer;
       transition: background 0.3s ease;
     }
@@ -142,46 +126,53 @@ session_start();
       background: #009b85;
     }
 
-    /* Links */
-    .signup-link,
     .signin-link {
       margin-top: 10px;
-      font-size: 0.9em;
+      font-size: 0.9rem;
     }
 
-    .signup-link a,
     .signin-link a {
       color: #0077cc;
+      text-decoration: none;
     }
 
-    .signup-link a:hover,
     .signin-link a:hover {
       text-decoration: underline;
     }
 
-    /* Responsive Design */
     @media (max-width: 768px) {
       .container {
-        padding: 15px;
+        padding: 15px 20px;
       }
 
-      h1 {
-        font-size: 1.5em;
+      .header {
+        height: 100px; /* Reduced header size for smaller screens */
+        padding: 20px 10px;
+      }
+
+      .header img {
+        height: 80px;
+      }
+
+      .header img:nth-child(2) {
+        margin: 0 20px; /* Adjust spacing between images */
       }
     }
   </style>
 </head>
 <body>
+<div class="header">
+    <img src="static/eu.png" alt="European Union">
+    <img src="static/dimokratia.png" alt="Cyprus Government">
+    <img src="static/kypros.png" alt="Cyprus Tomorrow">
+  </div>
   <div class="background">
     <div class="container">
-      <div class="logo">
-        <img src="https://via.placeholder.com/100" alt="Electric Future Logo">
-      </div>
       <div class="signin-box">
         <h1>Sign In</h1>
         <p class="subtitle">Drive the future of sustainability.</p>
-        <form action="/signIn" method="POST">
-          <div class="input-group">
+        <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST">
+        <div class="input-group">
             <label for="email">Email Address</label>
             <input type="email" id="email" name="email" placeholder="you@example.com" required>
           </div>
@@ -191,7 +182,7 @@ session_start();
           </div>
           <button type="submit" class="btn">Sign In</button>
         </form>
-        <p class="signup-link">Don't have an account? <a href="/signUp">Create one here</a>.</p>
+        <p class="signup-link">Don't have an account? <a href="signUp.php">Create one here</a>.</p>
       </div>
     </div>
   </div>
