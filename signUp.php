@@ -1,6 +1,51 @@
 <?php
+ob_start(); // Start output buffering
 session_start();
+require_once "connection.php"; // Include the connection file for database connection
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $email = filter_input(INPUT_POST, "email", FILTER_SANITIZE_EMAIL);
+    $first_name = filter_input(INPUT_POST, "first_name", FILTER_SANITIZE_SPECIAL_CHARS);
+    $last_name = filter_input(INPUT_POST, "last_name", FILTER_SANITIZE_SPECIAL_CHARS);
+    $birth_date = $_POST['birth_date'];
+    $gender = $_POST['gender'];
+    $username = filter_input(INPUT_POST, "username", FILTER_SANITIZE_SPECIAL_CHARS);
+    $password = password_hash($_POST['password'], PASSWORD_BCRYPT); // Hash the password
+    $identity_number = filter_input(INPUT_POST, "identity_number", FILTER_SANITIZE_SPECIAL_CHARS);
+    $user_type = $_POST['user_type'];
+    $iban = filter_input(INPUT_POST, "i-ban", FILTER_SANITIZE_SPECIAL_CHARS);
+
+    try {
+
+        $sql = "EXEC RegisterUser ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
+        $stmt = $conn->prepare($sql);
+
+        $stmt->bindParam(1, $first_name);
+        $stmt->bindParam(2, $last_name);
+        $stmt->bindParam(3, $birth_date);
+        $stmt->bindParam(4, $identity_number);
+        $stmt->bindParam(5, $gender);
+        $stmt->bindParam(6, $username);
+        $stmt->bindParam(7, $password);
+        $stmt->bindParam(8, $email);
+        $stmt->bindParam(9, $user_type);
+        $stmt->bindParam(10, $iban);
+
+        if ($stmt->execute()) {
+            echo "User added successfully. Redirecting..."; // Debugging message
+            header("Location: connect.php");
+            exit(); // Ensure no further code runs
+        } else {
+            echo "Error executing stored procedure.";
+        }
+    } catch (PDOException $e) {
+        echo "Error: " . $e->getMessage();
+    }
+}
+ob_end_flush(); // Flush output buffer
 ?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -173,11 +218,10 @@ session_start();
     <h1>Create Your Account</h1>
     <p class="subtitle">Join us on the journey to a sustainable future.</p>
     <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST">
-      <!-- Personal Information -->
       <div class="input-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" placeholder="you@example.com" required>
-          </div>
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required>
+      </div>
       <div class="input-group">
         <label for="first_name">First Name</label>
         <input type="text" id="first_name" name="first_name" placeholder="Your First Name" required>
@@ -197,8 +241,6 @@ session_start();
           <option value="F">Female</option>
         </select>
       </div>
-
-      <!-- Account Information -->
       <div class="input-group">
         <label for="username">Username</label>
         <input type="text" id="username" name="username" placeholder="Your Username" required>
@@ -220,110 +262,13 @@ session_start();
           <option value="AX-FP">Απλός Χρήστης-Φυσικό Πρόσωπο</option>
         </select>
       </div>
-
-      <!-- Legal Information -->
       <div class="input-group">
-        <label for="valid_legalization">Valid Legalization</label>
-        <select id="valid_legalization" name="valid_legalization">
-          <option value="1">Yes</option>
-          <option value="0">No</option>
-        </select>
+        <label for="i-ban">IBAN</label>
+        <input type="text" id="i-ban" name="i-ban" placeholder="Your IBAN" required>
       </div>
-
-      <!-- Hidden fields to set default values -->
-      <input type="hidden" name="is_active" value="1">
-      <input type="hidden" name="registration_date" value="<?php echo date('Y-m-d'); ?>">
-
-      <!-- Submit -->
       <button type="submit" class="btn">Sign Up</button>
     </form>
     <p class="signin-link">Already have an account? <a href="index.php">Sign in here</a>.</p>
   </div>
 </body>
 </html>
-
-<?php
-
-    if($_SERVER["REQUEST_METHOD"] == "POST"){
-
-        $email = filter_input(INPUT_POST, "email", FILTER_SANITIZE_EMAIL);
-        $first_name = filter_input(INPUT_POST, "first_name", FILTER_SANITIZE_SPECIAL_CHARS);
-        $last_name = filter_input(INPUT_POST, "last_name", FILTER_SANITIZE_SPECIAL_CHARS);
-        $birth_date = $_POST['birth_date']; // Date inputs don't need special sanitization
-        $gender = $_POST['gender']; // Select values are predefined
-        $username = filter_input(INPUT_POST, "username", FILTER_SANITIZE_SPECIAL_CHARS);
-        $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Securely hash passwords
-        $identity_number = filter_input(INPUT_POST, "identity_number", FILTER_SANITIZE_SPECIAL_CHARS);
-        $user_type = $_POST['user_type']; // Select values are predefined
-        $valid_legalization = $_POST['valid_legalization']; // Select values are predefined
-        $is_active = $_POST['is_active']; // Hidden field
-        $registration_date = $_POST['registration_date']; // Hidden field
-    
-        // Database connection
-        $mysqli = new mysqli("mssql.cs.ucy.ac.cy", "chadji10", "P5wHZj8v", "chadji10");
-    
-        // Check connection
-        if ($mysqli->connect_error) {
-            die("Connection failed: " . $mysqli->connect_error);
-        }
-    
-        // Call stored procedure
-        $procedure = "CALL RegisterUser(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $mysqli->prepare($procedure);
-    
-        if ($stmt) {
-            // Bind parameters to the stored procedure
-            $stmt->bind_param(
-                "ssssssssssis",
-                $email,
-                $first_name,
-                $last_name,
-                $birth_date,
-                $gender,
-                $username,
-                $password,
-                $identity_number,
-                $user_type,
-                $valid_legalization,
-                $is_active,
-                $registration_date
-            );
-    
-            // Execute the stored procedure
-            if ($stmt->execute()) {
-                echo "Registration successful!";
-            } else {
-                echo "Error executing stored procedure: " . $stmt->error;
-            }
-    
-            // Close statement
-            $stmt->close();
-        } else {
-            echo "Error preparing stored procedure: " . $mysqli->error;
-        }
-    
-        // Close connection
-        $mysqli->close();
-        // if(empty($username)){
-        //     echo"Please enter a username";
-        // }
-        // elseif(empty($password)){
-        //     echo"Please enter a password";
-        // }
-        // else{
-        //     $hash = password_hash($password, PASSWORD_DEFAULT); 
-        //     $sql = "INSERT INTO users (user, password)
-        //             VALUES ('$username', '$hash', '$first_name', '$last_name',')";
-            
-        //     try{
-        //         mysqli_query($conn, $sql);
-        //         echo"You are now registered!";
-        //     }
-        //     catch(mysqli_sql_exception){
-        //         echo"That username is taken";
-        //     }
-        // }
-    }
-
-  
-?>

@@ -1,12 +1,24 @@
 <?php
 session_start();
-require_once "connection.php"; // Include the connection file for database connection
+require_once "connection.php";
 
-if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'FY') {
-  header("Location: index.php");
-  exit();
-}
+// // Check if the user is logged in and is of type 'AA'
+// if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'AA') {
+//     header("Location: index.php");
+//     exit();
+// }
 
+// try {
+//     $conn = db_connect();
+
+//     // Retrieve applications related to the logged-in AA user
+//     $sql = "EXEC GetApplicationsForAA"; // Replace with the actual stored procedure or query
+//     $stmt = $conn->prepare($sql);
+//     $stmt->execute();
+//     $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// } catch (PDOException $e) {
+//     die("Error: " . $e->getMessage());
+// }
 ?>
 
 <!DOCTYPE html>
@@ -14,7 +26,7 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'FY') {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FY Dashboard | Electric Future</title>
+  <title>AA Dashboard | Electric Future</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     /* General Reset */
@@ -51,23 +63,12 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'FY') {
       font-weight: 700;
     }
 
-    .header nav {
-      display: flex;
-      gap: 20px;
-    }
-
     .header nav a {
       color: white;
       text-decoration: none;
       font-size: 1rem;
-      transition: color 0.3s;
     }
 
-    .header nav a:hover {
-      color: #00c7a3;
-    }
-
-    /* Main Content */
     .container {
       margin: 20px auto;
       padding: 20px;
@@ -155,104 +156,42 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'FY') {
 
   <!-- Main Content -->
   <div class="container">
-    <h1>Welcome, FY User</h1>
-
-    <!-- Section: Verify Users -->
-    <div class="section">
-      <h2>Verify Users (LT / AA)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Username</th>
-            <th>Full Name</th>
-            <th>Email</th>
-            <th>User Type</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Sample Data -->
-          <tr>
-            <td>john_doe</td>
-            <td>John Doe</td>
-            <td>john@example.com</td>
-            <td>LT</td>
-            <td>
-              <button class="btn">Verify</button>
-            </td>
-          </tr>
-          <tr>
-            <td>jane_smith</td>
-            <td>Jane Smith</td>
-            <td>jane@example.com</td>
-            <td>AA</td>
-            <td>
-              <button class="btn">Verify</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <h1>Welcome, AA User</h1>
 
     <!-- Section: View Applications -->
     <div class="section">
-      <h2>View Applications (AX-NP / AX-FP)</h2>
+      <h2>View and Edit Applications</h2>
       <table>
         <thead>
           <tr>
             <th>Application ID</th>
             <th>Applicant Name</th>
-            <th>Type</th>
+            <th>Category</th>
             <th>Status</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          <!-- Sample Data -->
-          <tr>
-            <td>1001</td>
-            <td>Michael Brown</td>
-            <td>AX-NP</td>
-            <td>Pending</td>
-            <td>
-              <button class="btn">Review</button>
-            </td>
-          </tr>
-          <tr>
-            <td>1002</td>
-            <td>Susan Lee</td>
-            <td>AX-FP</td>
-            <td>Pending</td>
-            <td>
-              <button class="btn">Review</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Section: Verify Applications -->
-    <div class="section">
-      <h2>Verify Applications</h2>
-      <p>Select an application to approve or reject.</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Application ID</th>
-            <th>Details</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Sample Data -->
-          <tr>
-            <td>1001</td>
-            <td>Electric Vehicle Purchase by Michael Brown</td>
-            <td>
-              <button class="btn">Approve</button>
-              <button class="btn">Reject</button>
-            </td>
-          </tr>
+          <?php if (!empty($applications)): ?>
+            <?php foreach ($applications as $app): ?>
+              <tr>
+                <td><?= htmlspecialchars($app['application_id']) ?></td>
+                <td><?= htmlspecialchars($app['applicant_name']) ?></td>
+                <td><?= htmlspecialchars($app['category']) ?></td>
+                <td><?= htmlspecialchars($app['status']) ?></td>
+                <td>
+                  <form action="EditApplication.php" method="GET" style="display: inline;">
+                    <input type="hidden" name="application_id" value="<?= htmlspecialchars($app['application_id']) ?>">
+                    <button class="btn">Edit</button>
+                  </form>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          <?php else: ?>
+            <tr>
+              <td colspan="5">No applications found.</td>
+            </tr>
+          <?php endif; ?>
         </tbody>
       </table>
     </div>
@@ -260,7 +199,7 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'FY') {
 
   <!-- Footer -->
   <div class="footer">
-    <p>Electric Future &copy; <?php echo date("Y"); ?>. All rights reserved.</p>
+    <p>Electric Future &copy; <?= date("Y") ?>. All rights reserved.</p>
   </div>
 </body>
 </html>

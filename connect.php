@@ -1,7 +1,64 @@
 <?php
-// Start session
 session_start();
+require_once "connection.php";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username = filter_input(INPUT_POST, "username", FILTER_SANITIZE_SPECIAL_CHARS);
+    $password = $_POST['password'];
+
+    try {
+        $conn = db_connect();
+
+        // Prepare the SQL to call the stored procedure
+        $sql = "EXEC SignIn ?, ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bindParam(1, $username);
+        $stmt->bindParam(2, $password);
+
+        // Execute the procedure
+        $stmt->execute();
+
+        // Fetch the single result directly (user_type)
+        $user_type = $stmt->fetchColumn();
+      
+        if ($user_type) {
+            $_SESSION['user_type'] = $user_type;
+            $_SESSION['username'] = $username;
+
+            // Redirection based on user_type
+            if ($_SESSION['user_type'] === 'FY') { 
+              header("Location: FY.php");
+              exit();
+            } else if($_SESSION['user_type'] === 'LT'){
+                header("Location: LT.php");
+                exit();
+            }
+            else if($_SESSION['user_type'] === 'AA'){
+              header("Location: AA.php");
+              exit();
+          }else if($_SESSION['user_type'] === 'AX-NP' || $_SESSION['user_type'] === 'AX-FP' ){
+            header("Location: AX.php");
+            exit();
+        }
+        } else {
+            // Handle case where user_type is not found
+            $_SESSION['error'] = "Invalid username or password.";
+            header("Location: index.php");
+            exit();
+        }
+    } catch (PDOException $e) {
+        // Handle exceptions
+        $_SESSION['error'] = "Error: " . $e->getMessage();
+        header("Location: index.php");
+        exit();
+    }
+}
 ?>
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -165,17 +222,17 @@ session_start();
     <img src="static/eu.png" alt="European Union">
     <img src="static/dimokratia.png" alt="Cyprus Government">
     <img src="static/kypros.png" alt="Cyprus Tomorrow">
-  </div>
-  <div class="background">
+</div>
+<div class="background">
     <div class="container">
       <div class="signin-box">
         <h1>Sign In</h1>
         <p class="subtitle">Drive the future of sustainability.</p>
         <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST">
         <div class="input-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" placeholder="you@example.com" required>
-          </div>
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="Your Username" required>
+      </div>
           <div class="input-group">
             <label for="password">Password</label>
             <input type="password" id="password" name="password" placeholder="Enter your password" required>
@@ -185,6 +242,6 @@ session_start();
         <p class="signup-link">Don't have an account? <a href="signUp.php">Create one here</a>.</p>
       </div>
     </div>
-  </div>
+</div>
 </body>
 </html>
