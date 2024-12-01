@@ -2,38 +2,48 @@
 session_start();
 require_once "connection.php";
 
-// // Check if the user is logged in and is of type 'AX'
-// if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'AX') {
-//     header("Location: index.php");
-//     exit();
-// }
-
 $message = "";
 $error = "";
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // try {
-    //     $conn = db_connect();
+    try {
+        // Check if the session variables are set
+        if (!isset($_SESSION['username']) || !isset($_SESSION['password'])) {
+            throw new Exception("Session variables not set. Please log in again.");
+        }
 
-    //     $submission_date = date('Y-m-d');
-    //     $is_active = isset($_POST['is_active']) ? 1 : 0;
-    //     $description = $_POST['description'];
-    //     $user_id = $_SESSION['user_id'];
+        // Retrieve input values
+        $category_type = $_POST['category_type'];
+        $file_path = $_POST['file_path'];
+        $username = $_SESSION['username'];
 
-    //     // Insert application into the database
-    //     $sql = "INSERT INTO Application (submission_date, is_active, user_id, description) VALUES (?, ?, ?, ?)";
-    //     $stmt = $conn->prepare($sql);
-    //     $stmt->execute([$submission_date, $is_active, $user_id, $description]);
 
-    //     $message = "Application created successfully!";
-    //     header("Location: AX.php"); // Redirect back to AX.php
-    //     exit();
 
-    // } catch (PDOException $e) {
-    //     $error = "Error: " . $e->getMessage();
-    // }
+        // Connect to the database
+        $conn = db_connect();
+        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        // Prepare and execute the stored procedure
+        $stmt = $conn->prepare("{CALL SubmitApplication(@username = ?, @category_type = ?, @file_path = ?)}");
+        $stmt->bindParam(1, $username, PDO::PARAM_STR);
+        $stmt->bindParam(2, $category_type, PDO::PARAM_STR);
+        $stmt->bindParam(3, $file_path, PDO::PARAM_STR);
+        $stmt->execute();
+
+  
+        header("Location: AX.php");
+        exit();
+
+    } catch (PDOException $e) {
+        $error = "Database error: " . $e->getMessage();
+        echo $error;
+    } catch (Exception $e) {
+        $error = $e->getMessage();
+        echo $error;
+    }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -146,35 +156,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <div class="container">
     <h1>Create a New Application</h1>
 
-    <?php if ($error): ?>
-        <div class="error"><?= htmlspecialchars($error) ?></div>
-    <?php endif; ?>
-
-    <?php if ($message): ?>
-        <div class="message"><?= htmlspecialchars($message) ?></div>
-    <?php endif; ?>
 
     <form method="POST">
     <div class="input-group">
-        <label for="category">Select the category of the sponsorship</label>
-        <select id="category" name="category" required>
-          <option value="Γ1">Γ1</option>
-          <option value="Γ2">Γ2</option>
-          <option value="Γ3">Γ3</option>
-          <option value="Γ4">Γ4</option>
-          <option value="Γ5">Γ5</option>
-          <option value="Γ6">Γ6</option>
-          <option value="Γ7">Γ7</option>
-          <option value="Γ8">Γ8</option>
-          <option value="Γ10">Γ10</option>
-          <option value="Γ11">Γ11</option>
-          <option value="Γ12">Γ12</option>
-          <option value="Γ13">Γ13</option>
-          <option value="Γ14">Γ14</option>
+        <label for="category_type">Select the category of the sponsorship</label>
+        <select id="category_type" name="category_type" required>
+          <option value="G1">Γ1</option>
+          <option value="G2">Γ2</option>
+          <option value="G3">Γ3</option>
+          <option value="G4">Γ4</option>
+          <option value="G5">Γ5</option>
+          <option value="G6">Γ6</option>
+          <option value="G7">Γ7</option>
+          <option value="G8">Γ8</option>
+          <option value="G10">Γ10</option>
+          <option value="G11">Γ11</option>
+          <option value="G12">Γ12</option>
+          <option value="G13">Γ13</option>
+          <option value="G14">Γ14</option>
         </select>
         <div class="input-group">
-        <label for="document_path">Document Path</label>
-        <input type="text" id="document_path" name="document_path" placeholder="Enter the document path" required>
+        <label for="file_path">Document Path</label>
+        <input type="text" id="file_path" name="file_path" placeholder="Enter the document path" required>
       </div>
       </div><button type="submit">Submit Application</button>
     </form>

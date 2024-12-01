@@ -1,34 +1,44 @@
 <?php
 session_start();
-require_once "connection.php";
+require_once "connection.php"; // Include the connection file for database connection
 
-// // Check if the user is logged in and is of type 'AA'
-// if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'AA') {
-//     header("Location: index.php");
-//     exit();
-// }
+$applicationsToReview = [];
+$error = "";
+$message = "";
 
-// try {
-//     $conn = db_connect();
+try {
+    $conn = db_connect();
 
-//     // Retrieve applications related to the logged-in AA user
-//     $sql = "EXEC GetApplicationsForAA"; // Replace with the actual stored procedure or query
-//     $stmt = $conn->prepare($sql);
-//     $stmt->execute();
-//     $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
-// } catch (PDOException $e) {
-//     die("Error: " . $e->getMessage());
-// }
+    // Handle approval or rejection of applications
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['application_id'], $_POST['action'])) {
+        $applicationId = $_POST['application_id'];
+        $action = $_POST['action'];
+
+        // Call the procedure to approve or reject
+        $stmt = $conn->prepare("{CALL ApproveOrDeclineApplicationsForReview(?, ?)}");
+        $stmt->bindParam(1, $applicationId, PDO::PARAM_INT);
+        $stmt->bindParam(2, $action, PDO::PARAM_STR);
+        $stmt->execute();
+    }
+
+    // Fetch applications for review
+    $stmt = $conn->prepare("{CALL ShowWaitingApplications()}");
+    $stmt->execute();
+    $applicationsToReview = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+} catch (PDOException $e) {
+    $error = "Error: " . $e->getMessage();
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AA Dashboard | Electric Future</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-  <style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AA Dashboard | Electric Future</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
     /* General Reset */
     * {
       margin: 0;
@@ -63,12 +73,23 @@ require_once "connection.php";
       font-weight: 700;
     }
 
+    .header nav {
+      display: flex;
+      gap: 20px;
+    }
+
     .header nav a {
       color: white;
       text-decoration: none;
       font-size: 1rem;
+      transition: color 0.3s;
     }
 
+    .header nav a:hover {
+      color: #00c7a3;
+    }
+
+    /* Main Content */
     .container {
       margin: 20px auto;
       padding: 20px;
@@ -134,6 +155,14 @@ require_once "connection.php";
       background: #009b85;
     }
 
+    .btn-view {
+      background: #FFC72C;
+    }
+
+    .btn-view:hover {
+      background: #FFC72C;
+    }
+
     .footer {
       margin-top: auto;
       background: #004c91;
@@ -143,63 +172,91 @@ require_once "connection.php";
       padding: 10px 0;
       font-size: 0.9rem;
     }
-  </style>
+
+    .message {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    </style>
 </head>
 <body>
-  <!-- Header -->
-  <div class="header">
-    <div class="logo">Electric Future</div>
-    <nav>
-      <a href="index.php">Logout</a>
-    </nav>
-  </div>
-
-  <!-- Main Content -->
-  <div class="container">
-    <h1>Welcome, AA User</h1>
-
-    <!-- Section: View Applications -->
-    <div class="section">
-      <h2>View and Edit Applications</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Application ID</th>
-            <th>Applicant Name</th>
-            <th>Category</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php if (!empty($applications)): ?>
-            <?php foreach ($applications as $app): ?>
-              <tr>
-                <td><?= htmlspecialchars($app['application_id']) ?></td>
-                <td><?= htmlspecialchars($app['applicant_name']) ?></td>
-                <td><?= htmlspecialchars($app['category']) ?></td>
-                <td><?= htmlspecialchars($app['status']) ?></td>
-                <td>
-                  <form action="EditApplication.php" method="GET" style="display: inline;">
-                    <input type="hidden" name="application_id" value="<?= htmlspecialchars($app['application_id']) ?>">
-                    <button class="btn">Edit</button>
-                  </form>
-                </td>
-              </tr>
-            <?php endforeach; ?>
-          <?php else: ?>
-            <tr>
-              <td colspan="5">No applications found.</td>
-            </tr>
-          <?php endif; ?>
-        </tbody>
-      </table>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">Electric Future</div>
+        <nav>
+            <a href="index.php">Logout</a>
+        </nav>
     </div>
-  </div>
 
-  <!-- Footer -->
-  <div class="footer">
-    <p>Electric Future &copy; <?= date("Y") ?>. All rights reserved.</p>
-  </div>
+    <!-- Main Content -->
+    <div class="container">
+        <h1>Welcome, AA User</h1>
+
+        <?php if ($message): ?>
+            <div class="message"><?= htmlspecialchars($message) ?></div>
+        <?php endif; ?>
+
+        <?php if ($error): ?>
+            <div class="error"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
+
+        <!-- Section: Review Applications -->
+        <div class="section">
+            <h2>Review Applications</h2>
+            <?php if (!empty($applicationsToReview)): ?>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Application ID</th>
+                            <th>Submission Date</th>
+                            <th>Status</th>
+                            <!-- <th>Details</th> -->
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($applicationsToReview as $app): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($app['Application ID']) ?></td>
+                                <td><?= htmlspecialchars($app['Submission Date']) ?></td>
+                                <td><?= htmlspecialchars($app['Status']) ?></td>
+                                <!-- <td><?= htmlspecialchars($app['Details']) ?></td> -->
+                                <td>
+                                    <form method="POST" action="addDocument.php">
+                                        <input type="hidden" name="application_id" value="<?= htmlspecialchars($app['Application ID']) ?>">
+                                        <button class="btn" name="action" value="Add">Add</button>
+                                    </form>
+                                    <form method="POST" action="viewDocument.php">
+                                        <input type="hidden" name="application_id" value="<?= htmlspecialchars($app['Application ID']) ?>">
+                                        <button class="btn btn-view" name="action" value="View">View</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <p>No applications available for review.</p>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>KSK_Team_Rocket &copy; <?= date("Y") ?>. All rights reserved.</p>
+    </div>
 </body>
 </html>

@@ -2,27 +2,30 @@
 session_start();
 require_once "connection.php";
 
-// // Check if the user is logged in and is of type 'AX'
-// if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'AX-NP'|| $_SESSION['user_type'] !== 'AX-FP') {
-//     header("Location: index.php");
-//     exit();
-// }
+// Check if the user is logged in and is of type 'AX'
+if (!isset($_SESSION['username'])) {
+    header("Location: index.php");
+    exit();
+}
 
-// Initialize error message
-// $error = "";
+$applications = [];
+$error = "";
 
-// try {
-//     $conn = db_connect();
+try {
+    // Connect to the database
+    $conn = db_connect();
 
-//     // Retrieve applications created by the logged-in user
-//     $sql = "SELECT application_id, submission_date, is_active FROM Application WHERE user_id = ?";
-//     $stmt = $conn->prepare($sql);
-//     $stmt->execute([$_SESSION['user_id']]);
-//     $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Execute the stored procedure to retrieve applications for the logged-in user
+    $stmt = $conn->prepare("{CALL ShowUserApplication(?)}");
+    $stmt->bindParam(1, $_SESSION['username'], PDO::PARAM_STR);
+    $stmt->execute();
 
-// } catch (PDOException $e) {
-//     $error = "Error: " . $e->getMessage();
-// }
+    // Fetch the results
+    $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+} catch (PDOException $e) {
+    $error = "Error: " . $e->getMessage();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -30,7 +33,6 @@ require_once "connection.php";
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AX Application Interface</title>
-    
     <style>
         /* General Reset */
         * {
@@ -125,20 +127,18 @@ require_once "connection.php";
             color: red;
             margin-bottom: 15px;
         }
-    </style>
-    
+    </style>>
 </head>
-
 <body>
 <div class="header">
     <img src="static/eu.png" alt="European Union">
     <img src="static/dimokratia.png" alt="Cyprus Government">
     <img src="static/kypros.png" alt="Cyprus Tomorrow">
     <nav>
-          <a href="index.php">Logout</a>
-        </nav>
-  </div>
-  
+        <a href="index.php">Logout</a>
+    </nav>
+</div>
+
 <div class="container">
     <h1>Welcome! Here you can create an Application and view your existing Applications</h1>
 
@@ -160,6 +160,9 @@ require_once "connection.php";
                     <th>Application ID</th>
                     <th>Submission Date</th>
                     <th>Is Active</th>
+                    <th>Status</th>
+                    <th>Type</th>
+                    <th>File Path</th>
                 </tr>
             </thead>
             <tbody>
@@ -168,6 +171,9 @@ require_once "connection.php";
                         <td><?= htmlspecialchars($app['application_id']) ?></td>
                         <td><?= htmlspecialchars($app['submission_date']) ?></td>
                         <td><?= $app['is_active'] ? 'Yes' : 'No' ?></td>
+                        <td><?= htmlspecialchars($app['application_status']) ?></td>
+                        <td><?= htmlspecialchars($app['type']) ?></td>
+                        <td><?= htmlspecialchars($app['file_path']) ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>

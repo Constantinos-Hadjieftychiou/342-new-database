@@ -17,7 +17,7 @@ function db_connect() {
 // Test the connection
 $conn = db_connect();
 if ($conn) {
-    echo "Connection successful!";
+   // echo "Connection successful!";
     $conn = null; // Close the connection
 }
 ?>

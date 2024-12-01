@@ -24,6 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($user_type) {
             $_SESSION['user_type'] = $user_type;
             $_SESSION['username'] = $username;
+            $_SESSION['password'] = $password;
 
             // Redirection based on user_type
             if ($_SESSION['user_type'] === 'FY') { 
