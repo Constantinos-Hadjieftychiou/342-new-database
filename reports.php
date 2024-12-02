@@ -13,21 +13,42 @@ $error = "";
 try {
     $conn = db_connect();
 
-    // Fetch all distinct categories for filtering
-    $stmt = $conn->prepare("SELECT DISTINCT [type] FROM CategoryOfApplication");
+    // Fetch all distinct categories for checkboxes
+    $stmt = $conn->prepare("SELECT DISTINCT [type] FROM CategoryOfApplication ORDER BY [type] ASC");
     $stmt->execute();
-    $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $categories = $stmt->fetchAll(PDO::FETCH_ASSOC); // Fetch the categories
 
-    // Fetch applications filtered by the selected category
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['category'])) {
-        $selectedCategory = $_POST['category'];
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $categoriesParam = isset($_POST['categories']) ? implode(',', $_POST['categories']) : null;
+        $sortBy = 'amount'; // Fixed value passed via a hidden input
+        $order = $_POST['order'] ?? '';
+        $amountType = $_POST['amount_type'] ?? '';
+        $reportType = $_POST['report_type'] ?? '';
 
-        $stmt = $conn->prepare("SELECT * FROM Application WHERE [type] = ?");
-        $stmt->bindParam(1, $selectedCategory, PDO::PARAM_STR);
-        $stmt->execute();
-        $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Validate required parameters
+        if (!$reportType) {
+            throw new Exception("Please select a report type.");
+        }
+
+        if ($reportType === 'report_1') {
+            if (!$order || !$amountType) {
+                throw new Exception("Please provide all required fields: Order and Amount Type.");
+            }
+
+            // Call the GroupApplicationsByCategory stored procedure
+            $stmt = $conn->prepare("EXEC GroupApplicationsByCategory @categories = ?, @sort_by = ?, @order = ?, @amount_type = ?");
+            $stmt->bindParam(1, $categoriesParam, PDO::PARAM_STR);
+            $stmt->bindParam(2, $sortBy, PDO::PARAM_STR);
+            $stmt->bindParam(3, $order, PDO::PARAM_STR);
+            $stmt->bindParam(4, $amountType, PDO::PARAM_STR);
+            $stmt->execute();
+
+            $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
     }
 } catch (PDOException $e) {
+    $error = "Database Error: " . $e->getMessage();
+} catch (Exception $e) {
     $error = "Error: " . $e->getMessage();
 }
 ?>
@@ -40,119 +61,249 @@ try {
     <title>Reports | Electric Future</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background: #f4f4f4;
+        /* General Reset */
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(to bottom, #004c91, #87CEEB);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            height: 80px;
+            background: #004c91;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .header nav a {
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 5px;
+            padding: 10px 15px;
+            background: white;
+            color: #004c91;
+            border: 2px solid #004c91;
+            transition: all 0.3s ease;
+        }
+        .header nav a:hover {
+            background: #f0f0f0;
         }
         .container {
             max-width: 1200px;
-            margin: 20px auto;
+            width: 90%;
+            margin: 40px auto;
             background: white;
-            padding: 20px;
+            padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.1);
         }
         h1 {
+            font-size: 2rem;
             text-align: center;
             margin-bottom: 20px;
             color: #004c91;
         }
-        .form-group {
-            margin-bottom: 20px;
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 30px;
         }
-        label {
-            font-weight: bold;
+        .filter-group {
+            display: none; /* Initially hidden */
+        }
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
         }
         select, button {
             width: 100%;
             padding: 10px;
-            margin-top: 10px;
+            font-size: 1rem;
             border: 1px solid #ddd;
             border-radius: 5px;
-            font-size: 1rem;
+            outline: none;
+        }
+        select:hover {
+            border-color: #004c91;
         }
         button {
-            background: #004c91;
+            background-color: #004c91;
             color: white;
+            font-weight: bold;
             cursor: pointer;
         }
         button:hover {
-            background: #003366;
+            background-color: #003366;
+        }
+        .scrollable-table-container {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 20px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
         }
         table th, table td {
+            padding: 15px;
+            text-align: left;
             border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
+            font-size: 1rem;
+            word-wrap: break-word;
         }
         table th {
-            background-color: #004c91;
+            background: #004c91;
             color: white;
         }
         table tr:nth-child(even) {
             background-color: #f9f9f9;
         }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .footer {
+            margin-top: auto;
+            background: #004c91;
+            color: white;
+            width: 100%;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Applications Reports</h1>
+<div class="header">
+    <div class="logo">Electric Future</div>
+    <nav>
+        <a href="FY.php">Back</a>
+    </nav>
+</div>
 
-        <?php if ($error): ?>
-            <p style="color: red;"><?= htmlspecialchars($error) ?></p>
-        <?php endif; ?>
+<div class="container">
+    <h1>Applications Reports</h1>
 
-        <!-- Category Filter Form -->
-        <form method="POST" class="form-group">
-            <label for="category">Select a Category:</label>
-            <select name="category" id="category" required>
-                <option value="" disabled selected>Select a category</option>
-                <?php foreach ($categories as $category): ?>
-                    <option value="<?= htmlspecialchars($category['type']) ?>">
-                        <?= htmlspecialchars($category['type']) ?>
-                    </option>
-                <?php endforeach; ?>
+    <?php if ($error): ?>
+        <div class="error"><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
+
+    <form method="POST">
+        <!-- Report Selector -->
+        <div class="filter-group" style="display: block;">
+            <label for="report_type">Select Report</label>
+            <select id="report_type" name="report_type" required>
+                <option value="" disabled selected>Select a Report</option>
+                <option value="report_1" <?= isset($_POST['report_type']) && $_POST['report_type'] === 'report_1' ? 'selected' : '' ?>>Report 1</option>
+                <option value="report_2" <?= isset($_POST['report_type']) && $_POST['report_type'] === 'report_2' ? 'selected' : '' ?>>Report 2</option>
             </select>
-            <button type="submit">Filter Applications</button>
-        </form>
+        </div>
 
-        <!-- Applications Table -->
-        <?php if (!empty($applications)): ?>
-            <table>
-                <thead>
+        <!-- Filters for Report 1 -->
+        <div id="filters" class="filter-group" style="display: <?= isset($_POST['report_type']) && $_POST['report_type'] === 'report_1' ? 'block' : 'none' ?>;">
+            <label>Select Categories (Optional)</label>
+            <div class="checkbox-group">
+                <?php foreach ($categories as $category): ?>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="categories[]" value="<?= htmlspecialchars($category['type']) ?>" id="category_<?= htmlspecialchars($category['type']) ?>"
+                            <?= isset($_POST['categories']) && in_array($category['type'], $_POST['categories']) ? 'checked' : '' ?>>
+                        <label for="category_<?= htmlspecialchars($category['type']) ?>"><?= htmlspecialchars($category['type']) ?></label>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <!-- Hidden Sort By -->
+            <input type="hidden" name="sort_by" value="amount">
+
+            <label for="order">Order</label>
+            <select name="order" id="order" required>
+                <option value="ASC" <?= isset($_POST['order']) && $_POST['order'] === 'ASC' ? 'selected' : '' ?>>Ascending</option>
+                <option value="DESC" <?= isset($_POST['order']) && $_POST['order'] === 'DESC' ? 'selected' : '' ?>>Descending</option>
+            </select>
+
+            <label for="amount_type">Amount Type</label>
+            <select name="amount_type" id="amount_type" required>
+                <option value="amount used" <?= isset($_POST['amount_type']) && $_POST['amount_type'] === 'amount used' ? 'selected' : '' ?>>Amount Used</option>
+                <option value="amount left" <?= isset($_POST['amount_type']) && $_POST['amount_type'] === 'amount left' ? 'selected' : '' ?>>Amount Left</option>
+            </select>
+        </div>
+
+        <button type="submit">Generate Report</button>
+    </form>
+
+    <?php if ($reportType === 'report_1' && !empty($applications)): ?>
+    <div class="scrollable-table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Category Type</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($applications as $application): ?>
                     <tr>
-                        <th>Application ID</th>
-                        <th>User ID</th>
-                        <th>Submission Date</th>
-                        <th>Is Active</th>
-                        <th>Status</th>
-                        <th>File Path</th>
-                        <th>Category Type</th>
+                        <td><?= htmlspecialchars($application['Category Type']) ?></td>
+                        <td><?= htmlspecialchars($application['Amount Used'] ?? $application['Amount Left']) ?></td>
                     </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($applications as $application): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($application['application_id']) ?></td>
-                            <td><?= htmlspecialchars($application['user_id']) ?></td>
-                            <td><?= htmlspecialchars($application['submission_date']) ?></td>
-                            <td><?= $application['is_active'] ? 'Yes' : 'No' ?></td>
-                            <td><?= htmlspecialchars($application['application_status']) ?></td>
-                            <td><a href="<?= htmlspecialchars($application['file_path']) ?>" target="_blank">View File</a></td>
-                            <td><?= htmlspecialchars($application['type']) ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php elseif ($_SERVER['REQUEST_METHOD'] === 'POST'): ?>
-            <p>No applications found for the selected category.</p>
-        <?php endif; ?>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
     </div>
+<?php endif; ?>
+
+</div>
+
+<script>
+    const reportType = document.getElementById('report_type');
+    const filters = document.getElementById('filters');
+
+    // Show filters only when "Report 1" is selected
+    reportType.addEventListener('change', function () {
+        if (this.value === 'report_1') {
+            filters.style.display = 'block';
+        } else {
+            filters.style.display = 'none';
+        }
+    });
+</script>
+<!-- Footer -->
+<div class="footer">
+    <p>KSK_Team_Rocket&copy; <?= date("Y") ?>. All rights reserved.</p>
+</div>
 </body>
 </html>

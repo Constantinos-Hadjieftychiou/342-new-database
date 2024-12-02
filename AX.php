@@ -43,45 +43,59 @@ try {
 
         body {
             font-family: 'Roboto', sans-serif;
-            background: #f4f4f4; /* Light neutral background color */
+            background: linear-gradient(to bottom, #004c91, #87CEEB); /* Fade from dark blue to light blue */
+            color: #333;
             display: flex;
             flex-direction: column;
-            align-items: center;
             min-height: 100vh;
-            color: #333;
         }
 
         /* Header */
         .header {
-            width: 100%; /* Full width */
-            height: 150px; /* Increased height */
-            background: rgba(255, 255, 255, 0.95);
-            padding: 30px 20px; /* Increased vertical padding */
+            width: 100%;
+            height: 80px;
+            background: #004c91;
+            color: white;
             display: flex;
-            justify-content: space-between; /* Align images across the width */
+            justify-content: space-between;
             align-items: center;
+            padding: 0 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1000;
         }
 
-        .header img {
-            height: 120px; /* Increased image height */
-            flex: 1; /* Ensure images are evenly spaced */
-            object-fit: contain;
-            max-width: 300px;
+        .header .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
         }
 
-        .header img:nth-child(2) {
-            margin: 0 50px; /* Add extra spacing between the center image */
+        .header nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        .header nav a {
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 5px;
+            padding: 10px 15px;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* Logout Button */
+        .btn-logout {
+            background-color: #ff4d4d; /* Red */
+            color: white;
+        }
+
+        .btn-logout:hover {
+            background-color: #e63939; /* Darker Red */
         }
 
         /* Container */
         .container {
             max-width: 800px;
-            margin: 200px auto 50px; /* Add space for the header */
+            margin: 150px auto 50px; /* Add space for the header */
             padding: 20px;
             background: #fff;
             border-radius: 8px;
@@ -127,15 +141,39 @@ try {
             color: red;
             margin-bottom: 15px;
         }
-    </style>>
+
+        /* Status Colors */
+        .status-denied {
+            color: #ff4d4d; /* Red for Denied */
+            font-weight: bold;
+        }
+
+        .status-approved {
+            color: #00c7a3; /* Green for Approved */
+            font-weight: bold;
+        }
+
+        .status-waiting {
+            color: #FFC72C; /* Orange for Waiting */
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: auto;
+            background: #004c91;
+            color: white;
+            width: 100%;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 <body>
 <div class="header">
-    <img src="static/eu.png" alt="European Union">
-    <img src="static/dimokratia.png" alt="Cyprus Government">
-    <img src="static/kypros.png" alt="Cyprus Tomorrow">
+    <div class="logo">Electric Future</div>
     <nav>
-        <a href="index.php">Logout</a>
+        <a href="index.php" class="btn-logout">Logout</a>
     </nav>
 </div>
 
@@ -167,11 +205,23 @@ try {
             </thead>
             <tbody>
                 <?php foreach ($applications as $app): ?>
+                    <?php
+                    // Determine the status class based on the status value
+                    $status = htmlspecialchars($app['application_status']);
+                    $statusClass = '';
+                    if ($status === 'Denied') {
+                        $statusClass = 'status-denied';
+                    } elseif ($status === 'Approved') {
+                        $statusClass = 'status-approved';
+                    } elseif ($status === 'Waiting') {
+                        $statusClass = 'status-waiting';
+                    }
+                    ?>
                     <tr>
                         <td><?= htmlspecialchars($app['application_id']) ?></td>
                         <td><?= htmlspecialchars($app['submission_date']) ?></td>
                         <td><?= $app['is_active'] ? 'Yes' : 'No' ?></td>
-                        <td><?= htmlspecialchars($app['application_status']) ?></td>
+                        <td class="<?= $statusClass ?>"><?= $status ?></td>
                         <td><?= htmlspecialchars($app['type']) ?></td>
                         <td><?= htmlspecialchars($app['file_path']) ?></td>
                     </tr>
@@ -181,6 +231,10 @@ try {
     <?php else: ?>
         <p>You have not created any applications yet.</p>
     <?php endif; ?>
+</div>
+<!-- Footer -->
+<div class="footer">
+    <p>KSK_Team_Rocket&copy; <?= date("Y") ?>. All rights reserved.</p>
 </div>
 </body>
 </html>

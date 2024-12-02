@@ -36,7 +36,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AA Dashboard | Electric Future</title>
+    <title>LT Dashboard | Electric Future</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
     /* General Reset */
@@ -47,14 +47,13 @@ try {
     }
 
     body {
-      font-family: 'Roboto', sans-serif;
-      background: #f4f4f4;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(to bottom, #004c91, #87CEEB); /* Fade from dark blue to light blue */
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
     /* Header */
     .header {
       width: 100%;
@@ -157,7 +156,23 @@ try {
     transition: all 0.3s ease;
     text-transform: uppercase;
 }
+ /* Logout Button */
+ .btn-logout {
+        background: #dc3545; /* Red background */
+        color: white; /* White text */
+        font-weight: bold;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 5px;
+        border: 2px solid #dc3545; /* Red border */
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
 
+    .btn-logout:hover {
+        background: #a71d2a; /* Darker red on hover */
+        border-color: #a71d2a; /* Darker red border on hover */
+    }
 /* Add Button */
 .btn-add {
     background: #00c7a3;
@@ -213,8 +228,9 @@ try {
     <div class="header">
         <div class="logo">Electric Future</div>
         <nav>
-            <a href="index.php">Logout</a>
-        </nav>
+    <a href="index.php" class="btn-logout">Logout</a>
+</nav>
+
     </div>
 
     <!-- Main Content -->

@@ -79,13 +79,13 @@ try {
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
-            background: #f4f4f4;
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(to bottom, #004c91, #87CEEB); /* Fade from dark blue to light blue */
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
 
         /* Header */
         .header {
@@ -301,7 +301,7 @@ try {
 </div>
 
 <div class="container">
-    <h1>Welcome, FY User</h1>
+    <h1> FY Dashboard</h1>
 
     <?php if ($message): ?>
         <div class="message"><?= htmlspecialchars($message) ?></div>
