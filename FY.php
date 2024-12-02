@@ -111,14 +111,32 @@ try {
         }
 
         .header nav a {
-            color: white;
             text-decoration: none;
             font-size: 1rem;
-            transition: color 0.3s;
+            font-weight: bold;
+            border-radius: 5px;
+            padding: 10px 15px;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
-        .header nav a:hover {
-            color: #00c7a3;
+        /* Reports Button */
+        .btn-reports {
+            background-color: #808080; /* Gray */
+            color: white;
+        }
+
+        .btn-reports:hover {
+            background-color: #696969; /* Darker Gray */
+        }
+
+        /* Logout Button */
+        .btn-logout {
+            background-color: #ff4d4d; /* Red */
+            color: white;
+        }
+
+        .btn-logout:hover {
+            background-color: #e63939; /* Darker Red */
         }
 
         /* Main Content */
@@ -151,10 +169,18 @@ try {
             padding-bottom: 5px;
         }
 
+        /* Scrollable Table */
+        .scrollable-table {
+            max-height: 300px; /* Limit the height of the table container */
+            overflow-y: auto; /* Enable vertical scrolling */
+            overflow-x: hidden; /* Disable horizontal scrolling */
+            border: 1px solid #ddd; /* Optional: Add a border for clarity */
+            border-radius: 5px; /* Optional: Add rounded corners */
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
         }
 
         table th, table td {
@@ -167,61 +193,48 @@ try {
             background: #004c91;
             color: white;
         }
-/* Reports Button */
-.btn-reports {
-    background-color: #808080; /* Gray */
-    color: white;
-    padding: 10px 15px;
-    text-decoration: none;
-    border-radius: 5px;
-    font-size: 1rem;
-    transition: background 0.3s ease;
-}
-
-.btn-reports:hover {
-    background-color: #696969; /* Darker Gray */
-}
-
-/* Logout Button */
-.btn-logout {
-    background-color: #ff4d4d; /* Red */
-    color: white;
-    padding: 10px 15px;
-    text-decoration: none;
-    border-radius: 5px;
-    font-size: 1rem;
-    transition: background 0.3s ease;
-}
-
-.btn-logout:hover {
-    background-color: #e63939; /* Darker Red */
-}
-
 
         table tr:nth-child(even) {
             background: #f9f9f9;
         }
 
+        /* Buttons */
         .btn {
-            background: #00c7a3;
-            color: white;
-            padding: 5px 10px;
-            border: none;
-            border-radius: 5px;
+            padding: 8px 15px;
             font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 5px;
+            border: none;
             cursor: pointer;
-            transition: background 0.3s ease;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
         }
 
+        .btn-approve {
+            background: #00c7a3;
+            color: white;
+        }
 
+        .btn-approve:hover {
+            background: #009b85;
+        }
 
-        /* Red Button for Reject */
         .btn-reject {
             background: #ff4d4d;
+            color: white;
         }
 
         .btn-reject:hover {
             background: #e63939;
+        }
+
+        .btn-view {
+            background: #FFC72C;
+            color: white;
+        }
+
+        .btn-view:hover {
+            background: #E0A806;
         }
 
         .footer {
@@ -233,6 +246,31 @@ try {
             padding: 10px 0;
             font-size: 0.9rem;
         }
+/* Status Colors */
+.status-denied {
+    color: #ff4d4d; /* Red for Denied */
+    font-weight: bold;
+}
+/* User Type Colors */
+.type-lt {
+    color: #9400D3; /* Purple for LT */
+    font-weight: bold;
+}
+
+.type-aa {
+    color: #4169E1; /* Pink for AA */
+    font-weight: bold;
+}
+
+.status-approved {
+    color: #00c7a3; /* Green for Approved */
+    font-weight: bold;
+}
+
+.status-waiting {
+    color: #FFC72C; /* Orange for Waiting */
+    font-weight: bold;
+}
 
         .message {
             background: #d4edda;
@@ -242,15 +280,6 @@ try {
             border-radius: 5px;
             margin-bottom: 20px;
         }
-/* Yellow Button for View */
-.btn-view {
-    background: #FFC72C;
-    color: white;
-}
-
-.btn-view:hover {
-    background: #E0A806;
-}
 
         .error {
             background: #f8d7da;
@@ -271,24 +300,22 @@ try {
     </nav>
 </div>
 
+<div class="container">
+    <h1>Welcome, FY User</h1>
 
+    <?php if ($message): ?>
+        <div class="message"><?= htmlspecialchars($message) ?></div>
+    <?php endif; ?>
 
-    <!-- Main Content -->
-    <div class="container">
-        <h1>Welcome, FY User</h1>
+    <?php if ($error): ?>
+        <div class="error"><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
 
-        <?php if ($message): ?>
-            <div class="message"><?= htmlspecialchars($message) ?></div>
-        <?php endif; ?>
-
-        <?php if ($error): ?>
-            <div class="error"><?= htmlspecialchars($error) ?></div>
-        <?php endif; ?>
-
-        <!-- Section: Verify Users -->
-        <div class="section">
-            <h2>Verify Users (LT / AA)</h2>
-            <?php if (!empty($verifyUsers)): ?>
+    <!-- Section: Verify Users -->
+    <div class="section">
+        <h2>Verify Users (LT / AA)</h2>
+        <?php if (!empty($verifyUsers)): ?>
+            <div class="scrollable-table">
                 <table>
                     <thead>
                         <tr>
@@ -303,11 +330,21 @@ try {
                             <tr>
                                 <td><?= htmlspecialchars($user['username']) ?></td>
                                 <td><?= htmlspecialchars($user['email']) ?></td>
-                                <td><?= htmlspecialchars($user['user_type']) ?></td>
                                 <td>
+                                <?php
+                                $userType = htmlspecialchars($user['user_type']);
+                                $userTypeClass = '';
+                                if ($userType === 'LT') {
+                                    $userTypeClass = 'type-lt';
+                                } elseif ($userType === 'AA') {
+                                    $userTypeClass = 'type-aa';
+                                }
+                                ?>
+                                <span class="<?= $userTypeClass ?>"><?= $userType ?></span>
+                            </td>                                <td>
                                     <form method="POST">
                                         <input type="hidden" name="username" value="<?= htmlspecialchars($user['username']) ?>">
-                                        <button class="btn" name="user_action" value="Approve">Verify</button>
+                                        <button class="btn btn-approve" name="user_action" value="Approve">Verify</button>
                                         <button class="btn btn-reject" name="user_action" value="Reject">Reject</button>
                                     </form>
                                 </td>
@@ -315,48 +352,67 @@ try {
                         <?php endforeach; ?>
                     </tbody>
                 </table>
-            <?php else: ?>
-                <p>No users pending verification.</p>
-            <?php endif; ?>
-        </div>
+            </div>
+        <?php else: ?>
+            <p>No users pending verification.</p>
+        <?php endif; ?>
+    </div>
 
-        <!-- Section: View Applications -->
-        <div class="section">
-            <h2>View Applications</h2>
-            <?php if (!empty($applicationsToView)): ?>
-                <table>
-                    <thead>
+    <!-- Section: View Applications -->
+<!-- Section: View Applications -->
+<div class="section">
+    <h2>View Applications</h2>
+    <?php if (!empty($applicationsToView)): ?>
+        <div class="scrollable-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Application ID</th>
+                        <th>Submission Date</th>
+                        <th>Is Active</th>
+                        <th>Status</th>
+                        <th>File Path</th>
+                        <th>Category Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($applicationsToView as $app): ?>
                         <tr>
-                            <th>Application ID</th>
-                            <th>Submission Date</th>
-                            <th>Is Active</th>
-                            <th>Status</th>
-                            <th>File Path</th>
-                            <th>Category Type</th>
+                            <td><?= htmlspecialchars($app['Application ID']) ?></td>
+                            <td><?= htmlspecialchars($app['Submission Date']) ?></td>
+                            <td><?= $app['Is Active'] ? 'Yes' : 'No' ?></td>
+                            <td>
+                                <?php
+                                $status = htmlspecialchars($app['Status']);
+                                $statusClass = '';
+                                if ($status === 'Denied') {
+                                    $statusClass = 'status-denied';
+                                } elseif ($status === 'Approved') {
+                                    $statusClass = 'status-approved';
+                                } elseif ($status === 'Waiting') {
+                                    $statusClass = 'status-waiting';
+                                }
+                                ?>
+                                <span class="<?= $statusClass ?>"><?= $status ?></span>
+                            </td>
+                            <td><?= htmlspecialchars($app['File Path']) ?></td>
+                            <td><?= htmlspecialchars($app['Category Type']) ?></td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($applicationsToView as $app): ?>
-                            <tr>
-                                <td><?= htmlspecialchars($app['Application ID']) ?></td>
-                                <td><?= htmlspecialchars($app['Submission Date']) ?></td>
-                                <td><?= $app['Is Active'] ? 'Yes' : 'No' ?></td>
-                                <td><?= htmlspecialchars($app['Status']) ?></td>
-                                <td><?= htmlspecialchars($app['File Path']) ?></td>
-                                <td><?= htmlspecialchars($app['Category Type']) ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <p>No applications available.</p>
-            <?php endif; ?>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
+    <?php else: ?>
+        <p>No applications available.</p>
+    <?php endif; ?>
+</div>
 
-        <!-- Section: Verify Applications -->
-        <div class="section">
-            <h2>Verify Applications</h2>
-            <?php if (!empty($verifyApplications)): ?>
+
+    <!-- Section: Verify Applications -->
+    <div class="section">
+        <h2>Verify Applications</h2>
+        <?php if (!empty($verifyApplications)): ?>
+            <div class="scrollable-table">
                 <table>
                     <thead>
                         <tr>
@@ -375,33 +431,53 @@ try {
                                 <td><?= htmlspecialchars($app['Application ID']) ?></td>
                                 <td><?= htmlspecialchars($app['Submission Date']) ?></td>
                                 <td><?= $app['Is Active'] ? 'Yes' : 'No' ?></td>
-                                <td><?= htmlspecialchars($app['Status']) ?></td>
+                                <td>
+                                <?php
+                                $status = htmlspecialchars($app['Status']);
+                                $statusClass = '';
+                                if ($status === 'Denied') {
+                                    $statusClass = 'status-denied';
+                                } elseif ($status === 'Approved') {
+                                    $statusClass = 'status-approved';
+                                } elseif ($status === 'Waiting') {
+                                    $statusClass = 'status-waiting';
+                                }
+                                ?>
+                                <span class="<?= $statusClass ?>"><?= $status ?></span>
+                            </td>
                                 <td><?= htmlspecialchars($app['File Path']) ?></td>
                                 <td><?= htmlspecialchars($app['Category Type']) ?></td>
                                 <td>
-                                    <form method="POST">
-                                        <input type="hidden" name="application_id" value="<?= htmlspecialchars($app['Application ID']) ?>">
-                                        <button class="btn" name="action" value="Approve">Approve</button>
-                                        <button class="btn btn-reject" name="action" value="Decline">Reject</button>
-                                    </form>
-                                    <form method="POST" action="viewDocument.php">
-                                        <input type="hidden" name="application_id" value="<?= htmlspecialchars($app['Application ID']) ?>">
-                                        <button class="btn btn-view" name="action" value="View">View</button>
-                                    </form>
+                                    <div class="action-buttons">
+                                        <form method="POST">
+                                            <input type="hidden" name="application_id" value="<?= htmlspecialchars($app['Application ID']) ?>">
+                                            <button class="btn btn-approve" name="action" value="Approve">Approve</button>
+                                        </form>
+                                        <form method="POST">
+                                            <input type="hidden" name="application_id" value="<?= htmlspecialchars($app['Application ID']) ?>">
+                                            <button class="btn btn-reject" name="action" value="Decline">Reject</button>
+                                        </form>
+                                        <form method="POST" action="viewDocument.php">
+                                            <input type="hidden" name="application_id" value="<?= htmlspecialchars($app['Application ID']) ?>">
+                                            <button class="btn btn-view" name="action" value="View">View</button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
-            <?php else: ?>
-                <p>No applications pending approval or rejection.</p>
-            <?php endif; ?>
-        </div>
+            </div>
+        <?php else: ?>
+            <p>No applications pending approval or rejection.</p>
+        <?php endif; ?>
     </div>
+</div>
 
-    <!-- Footer -->
-    <div class="footer">
-        <p>KSK_Team_Rocket&copy; <?= date("Y") ?>. All rights reserved.</p>
-    </div>
+<!-- Footer -->
+<div class="footer">
+    <p>KSK_Team_Rocket&copy; <?= date("Y") ?>. All rights reserved.</p>
+</div>
 </body>
 </html>
+

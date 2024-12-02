@@ -179,6 +179,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       cursor: pointer;
       transition: background 0.3s ease;
     }
+    .footer {
+    margin-top: auto;
+    background: #004c91; /* Same dark blue as header */
+    color: white;
+    width: 100%;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 0.9rem;
+}
 
     .btn:hover {
       background: #009b85;
@@ -244,5 +253,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       </div>
     </div>
 </div>
+    <!-- Footer -->
+    <div class="footer">
+        <p>KSK_Team_Rocket&copy; <?= date("Y") ?>. All rights reserved.</p>
+    </div>
 </body>
 </html>

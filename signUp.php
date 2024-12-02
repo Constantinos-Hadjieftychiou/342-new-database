@@ -97,6 +97,15 @@ ob_end_flush(); // Flush output buffer
     .header img:nth-child(2) {
       margin: 0 50px; /* Add extra spacing between the center image */
     }
+    .footer {
+    margin-top: auto;
+    background: #004c91; /* Same dark blue as header */
+    color: white;
+    width: 100%;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 0.9rem;
+}
 
     /* Container */
     .container {
@@ -270,5 +279,9 @@ ob_end_flush(); // Flush output buffer
     </form>
     <p class="signin-link">Already have an account? <a href="index.php">Sign in here</a>.</p>
   </div>
+   <!-- Footer -->
+   <div class="footer">
+        <p>KSK_Team_Rocket&copy; <?= date("Y") ?>. All rights reserved.</p>
+    </div>
 </body>
 </html>

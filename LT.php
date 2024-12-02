@@ -2,10 +2,6 @@
 session_start();
 require_once "connection.php"; // Include the connection file for database connection
 
-// if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'LT') {
-//     header("Location: index.php");
-//     exit();
-// }
 $applicationsToReview = [];
 $error = "";
 $message = "";
@@ -13,22 +9,20 @@ $message = "";
 try {
     $conn = db_connect();
 
-    // Handle actions related to applications
+    // Handle approval or rejection of applications
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['application_id'], $_POST['action'])) {
         $applicationId = $_POST['application_id'];
         $action = $_POST['action'];
 
-        // Call the procedure to handle actions
-        $stmt = $conn->prepare("{CALL HandleLTApplications(?, ?)}");
+        // Call the procedure to approve or reject
+        $stmt = $conn->prepare("{CALL ApproveOrDeclineApplicationsForReview(?, ?)}");
         $stmt->bindParam(1, $applicationId, PDO::PARAM_INT);
         $stmt->bindParam(2, $action, PDO::PARAM_STR);
         $stmt->execute();
-
-        $message = "Application ID $applicationId has been " . ($action === 'Approve' ? 'approved' : ($action === 'Reject' ? 'rejected' : 'handled')) . ".";
     }
 
-    // Fetch applications for LT users
-    $stmt = $conn->prepare("{CALL ShowApplicationsForLT()}");
+    // Fetch applications for review
+    $stmt = $conn->prepare("{CALL ShowWaitingApplications()}");
     $stmt->execute();
     $applicationsToReview = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -42,7 +36,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LT Dashboard | Electric Future</title>
+    <title>AA Dashboard | Electric Future</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
     /* General Reset */
@@ -146,29 +140,44 @@ try {
       background: #f9f9f9;
     }
 
-    .btn {
-      background: #00c7a3;
-      color: white;
-      padding: 5px 10px;
-      border: none;
-      border-radius: 5px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
+   /* Action Buttons */
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Spacing between buttons */
+}
 
-    .btn:hover {
-      background: #009b85;
-    }
+.btn {
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
 
-    /* Yellow Button for Edit */
-    .btn-edit {
-      background: #ffc107;
-    }
+/* Add Button */
+.btn-add {
+    background: #00c7a3;
+    color: white;
+}
 
-    .btn-edit:hover {
-      background: #e0a800;
-    }
+.btn-add:hover {
+    background: #009b85;
+}
+
+/* View Button */
+.btn-view {
+    background: #FFC72C;
+    color: white;
+}
+
+.btn-view:hover {
+    background: #E0A806;
+}
+
 
     .footer {
       margin-top: auto;
@@ -230,7 +239,7 @@ try {
                             <th>Application ID</th>
                             <th>Submission Date</th>
                             <th>Status</th>
-                            <th>Details</th>
+                            <!-- <th>Details</th> -->
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -240,14 +249,20 @@ try {
                                 <td><?= htmlspecialchars($app['Application ID']) ?></td>
                                 <td><?= htmlspecialchars($app['Submission Date']) ?></td>
                                 <td><?= htmlspecialchars($app['Status']) ?></td>
-                                <td><?= htmlspecialchars($app['Details']) ?></td>
+                                <!-- <td><?= htmlspecialchars($app['Details']) ?></td> -->
                                 <td>
-                                    <form method="POST">
-                                        <input type="hidden" name="application_id" value="<?= htmlspecialchars($app['Application ID']) ?>">
-                                        <button class="btn" name="action" value="Add">Add</button>
-                                        <button class="btn btn-edit" name="action" value="Edit">Edit</button>
-                                    </form>
-                                </td>
+    <div class="action-buttons">
+        <form method="POST" action="addDocument.php">
+            <input type="hidden" name="application_id" value="<?= htmlspecialchars($app['Application ID']) ?>">
+            <button class="btn btn-add" name="action" value="Add">Add</button>
+        </form>
+        <form method="POST" action="viewDocument.php">
+            <input type="hidden" name="application_id" value="<?= htmlspecialchars($app['Application ID']) ?>">
+            <button class="btn btn-view" name="action" value="View">View</button>
+        </form>
+    </div>
+</td>
+
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -260,7 +275,7 @@ try {
 
     <!-- Footer -->
     <div class="footer">
-        <p>Electric Future &copy; <?= date("Y") ?>. All rights reserved.</p>
+        <p>KSK_Team_Rocket &copy; <?= date("Y") ?>. All rights reserved.</p>
     </div>
 </body>
 </html>
