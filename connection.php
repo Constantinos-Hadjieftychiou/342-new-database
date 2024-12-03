@@ -5,6 +5,7 @@ function db_connect() {
     $password = "JcgSDR38";
 
     try {
+        global $conn; // Ensure $conn is global
         $conn = new PDO($dsn, $username, $password);
         // Set error mode to exception
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -17,7 +18,7 @@ function db_connect() {
 // Test the connection
 $conn = db_connect();
 if ($conn) {
-   // echo "Connection successful!";
+    //echo "Connection successful!";
     $conn = null; // Close the connection
 }
 ?>

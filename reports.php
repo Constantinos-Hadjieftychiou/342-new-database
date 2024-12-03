@@ -7,9 +7,6 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'FY') {
     exit();
 }
 
-$applications = [];
-$error = "";
-
 try {
     $conn = db_connect();
 
@@ -17,35 +14,6 @@ try {
     $stmt = $conn->prepare("SELECT DISTINCT [type] FROM CategoryOfApplication ORDER BY [type] ASC");
     $stmt->execute();
     $categories = $stmt->fetchAll(PDO::FETCH_ASSOC); // Fetch the categories
-
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $categoriesParam = isset($_POST['categories']) ? implode(',', $_POST['categories']) : null;
-        $sortBy = 'amount'; // Fixed value passed via a hidden input
-        $order = $_POST['order'] ?? '';
-        $amountType = $_POST['amount_type'] ?? '';
-        $reportType = $_POST['report_type'] ?? '';
-
-        // Validate required parameters
-        if (!$reportType) {
-            throw new Exception("Please select a report type.");
-        }
-
-        if ($reportType === 'report_1') {
-            if (!$order || !$amountType) {
-                throw new Exception("Please provide all required fields: Order and Amount Type.");
-            }
-
-            // Call the GroupApplicationsByCategory stored procedure
-            $stmt = $conn->prepare("EXEC GroupApplicationsByCategory @categories = ?, @sort_by = ?, @order = ?, @amount_type = ?");
-            $stmt->bindParam(1, $categoriesParam, PDO::PARAM_STR);
-            $stmt->bindParam(2, $sortBy, PDO::PARAM_STR);
-            $stmt->bindParam(3, $order, PDO::PARAM_STR);
-            $stmt->bindParam(4, $amountType, PDO::PARAM_STR);
-            $stmt->execute();
-
-            $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        }
-    }
 } catch (PDOException $e) {
     $error = "Database Error: " . $e->getMessage();
 } catch (Exception $e) {
@@ -58,7 +26,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reports | Electric Future</title>
+    <title>Reports | EV Manager</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         /* General Reset */
@@ -125,24 +93,6 @@ try {
             gap: 20px;
             margin-bottom: 30px;
         }
-        .filter-group {
-            display: none; /* Initially hidden */
-        }
-        .checkbox-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
         select, button {
             width: 100%;
             padding: 10px;
@@ -163,39 +113,6 @@ try {
         button:hover {
             background-color: #003366;
         }
-        .scrollable-table-container {
-            max-height: 500px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-top: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table th, table td {
-            padding: 15px;
-            text-align: left;
-            border: 1px solid #ddd;
-            font-size: 1rem;
-            word-wrap: break-word;
-        }
-        table th {
-            background: #004c91;
-            color: white;
-        }
-        table tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
         .footer {
             margin-top: auto;
             background: #004c91;
@@ -209,7 +126,7 @@ try {
 </head>
 <body>
 <div class="header">
-    <div class="logo">Electric Future</div>
+    <div class="logo">EV Manager</div>
     <nav>
         <a href="FY.php">Back</a>
     </nav>
@@ -218,90 +135,41 @@ try {
 <div class="container">
     <h1>Applications Reports</h1>
 
-    <?php if ($error): ?>
-        <div class="error"><?= htmlspecialchars($error) ?></div>
-    <?php endif; ?>
-
-    <form method="POST">
+    <form method="GET" action="">
         <!-- Report Selector -->
-        <div class="filter-group" style="display: block;">
+        <div>
             <label for="report_type">Select Report</label>
             <select id="report_type" name="report_type" required>
                 <option value="" disabled selected>Select a Report</option>
-                <option value="report_1" <?= isset($_POST['report_type']) && $_POST['report_type'] === 'report_1' ? 'selected' : '' ?>>Report 1</option>
-                <option value="report_2" <?= isset($_POST['report_type']) && $_POST['report_type'] === 'report_2' ? 'selected' : '' ?>>Report 2</option>
+                <option value="report1">Αναφορά Επιχορηγήσεων</option>
+                <option value="report2">Αναφορές Στατιστικών αιτήσεων</option>
+                <option value="report3">Αναφορές Ύψους επιχορηγήσεων</option>
+                <option value="report4">Αναφορές Απόδοσης</option>
+
             </select>
         </div>
 
-        <!-- Filters for Report 1 -->
-        <div id="filters" class="filter-group" style="display: <?= isset($_POST['report_type']) && $_POST['report_type'] === 'report_1' ? 'block' : 'none' ?>;">
-            <label>Select Categories (Optional)</label>
-            <div class="checkbox-group">
-                <?php foreach ($categories as $category): ?>
-                    <div class="checkbox-item">
-                        <input type="checkbox" name="categories[]" value="<?= htmlspecialchars($category['type']) ?>" id="category_<?= htmlspecialchars($category['type']) ?>"
-                            <?= isset($_POST['categories']) && in_array($category['type'], $_POST['categories']) ? 'checked' : '' ?>>
-                        <label for="category_<?= htmlspecialchars($category['type']) ?>"><?= htmlspecialchars($category['type']) ?></label>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-
-            <!-- Hidden Sort By -->
-            <input type="hidden" name="sort_by" value="amount">
-
-            <label for="order">Order</label>
-            <select name="order" id="order" required>
-                <option value="ASC" <?= isset($_POST['order']) && $_POST['order'] === 'ASC' ? 'selected' : '' ?>>Ascending</option>
-                <option value="DESC" <?= isset($_POST['order']) && $_POST['order'] === 'DESC' ? 'selected' : '' ?>>Descending</option>
-            </select>
-
-            <label for="amount_type">Amount Type</label>
-            <select name="amount_type" id="amount_type" required>
-                <option value="amount used" <?= isset($_POST['amount_type']) && $_POST['amount_type'] === 'amount used' ? 'selected' : '' ?>>Amount Used</option>
-                <option value="amount left" <?= isset($_POST['amount_type']) && $_POST['amount_type'] === 'amount left' ? 'selected' : '' ?>>Amount Left</option>
-            </select>
-        </div>
-
-        <button type="submit">Generate Report</button>
+        <button type="submit" id="continue_button">Continue</button>
     </form>
-
-    <?php if ($reportType === 'report_1' && !empty($applications)): ?>
-    <div class="scrollable-table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Category Type</th>
-                    <th>Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($applications as $application): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($application['Category Type']) ?></td>
-                        <td><?= htmlspecialchars($application['Amount Used'] ?? $application['Amount Left']) ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
-<?php endif; ?>
-
 </div>
 
 <script>
     const reportType = document.getElementById('report_type');
-    const filters = document.getElementById('filters');
+    const continueButton = document.getElementById('continue_button');
 
-    // Show filters only when "Report 1" is selected
-    reportType.addEventListener('change', function () {
-        if (this.value === 'report_1') {
-            filters.style.display = 'block';
-        } else {
-            filters.style.display = 'none';
+    // Redirect to the appropriate report page
+    continueButton.addEventListener('click', function (event) {
+        const selectedReport = reportType.value;
+        if (!selectedReport) {
+            alert('Please select a report.');
+            event.preventDefault();
+            return;
         }
+        const redirectUrl = `${selectedReport}.php`;
+        this.form.action = redirectUrl;
     });
 </script>
-<!-- Footer -->
+
 <div class="footer">
     <p>KSK_Team_Rocket&copy; <?= date("Y") ?>. All rights reserved.</p>
 </div>

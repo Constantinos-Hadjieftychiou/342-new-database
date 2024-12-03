@@ -36,7 +36,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LT Dashboard | Electric Future</title>
+    <title>LT Dashboard | EV Manager</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
     /* General Reset */
@@ -226,7 +226,7 @@ try {
 <body>
     <!-- Header -->
     <div class="header">
-        <div class="logo">Electric Future</div>
+        <div class="logo">EV Manager</div>
         <nav>
     <a href="index.php" class="btn-logout">Logout</a>
 </nav>

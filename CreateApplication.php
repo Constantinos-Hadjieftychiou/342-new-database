@@ -168,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <body>
 <div class="header">
-    <div class="logo">Electric Future</div>
+    <div class="logo">EV Manager</div>
     <a href="AX.php" class="btn-back">Back</a>
 </div>
 

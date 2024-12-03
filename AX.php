@@ -171,7 +171,7 @@ try {
 </head>
 <body>
 <div class="header">
-    <div class="logo">Electric Future</div>
+    <div class="logo">EV Manager</div>
     <nav>
         <a href="index.php" class="btn-logout">Logout</a>
     </nav>

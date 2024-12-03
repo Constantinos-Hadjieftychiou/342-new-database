@@ -34,7 +34,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Documents | Electric Future</title>
+    <title>View Documents | EV Manager</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         /* General Reset */
@@ -165,7 +165,7 @@ try {
 <body>
     <!-- Header -->
     <div class="header">
-        <div class="logo">Electric Future</div>
+        <div class="logo">EV Manager</div>
         <nav>
             <a href="<?= htmlspecialchars($previousPage) ?>">Back</a>
         </nav>

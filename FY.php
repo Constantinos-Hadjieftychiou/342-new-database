@@ -10,7 +10,6 @@ $verifyUsers = [];
 $applicationsToView = [];
 $verifyApplications = [];
 $error = "";
-$message = "";
 
 try {
     $conn = db_connect();
@@ -26,7 +25,7 @@ try {
         $stmt->bindParam(2, $userAction, PDO::PARAM_STR);
         $stmt->execute();
 
-        $message = "User '$username' has been " . ($userAction === 'Approve' ? 'approved' : 'rejected') . ".";
+       // $message = "User '$username' has been " . ($userAction === 'Approve' ? 'approved' : 'rejected') . ".";
     }
 
     // Handle approval or rejection of applications
@@ -40,7 +39,7 @@ try {
         $stmt->bindParam(2, $action, PDO::PARAM_STR);
         $stmt->execute();
 
-        $message = "Application ID $applicationId has been " . ($action === 'Approve' ? 'approved' : 'rejected') . ".";
+       // $message = "Application ID $applicationId has been " . ($action === 'Approve' ? 'approved' : 'rejected') . ".";
     }
 
     // Fetch users who need verification (e.g., LT / AA)
@@ -68,7 +67,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FY Dashboard | Electric Future</title>
+    <title>FY Dashboard | EV Manager</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         /* General Reset */
@@ -293,7 +292,7 @@ try {
 </head>
 <body>
 <div class="header">
-    <div class="logo">Electric Future</div>
+    <div class="logo">EV Manager</div>
     <nav>
         <a href="reports.php" class="btn-reports">Reports</a>
         <a href="index.php" class="btn-logout">Logout</a>

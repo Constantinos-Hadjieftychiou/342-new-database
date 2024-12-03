@@ -10,12 +10,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $birth_date = $_POST['birth_date'];
     $gender = $_POST['gender'];
     $username = filter_input(INPUT_POST, "username", FILTER_SANITIZE_SPECIAL_CHARS);
-    $password = password_hash($_POST['password'], PASSWORD_BCRYPT); // Hash the password
+    $password = $_POST['password']; // Hash the password
     $identity_number = filter_input(INPUT_POST, "identity_number", FILTER_SANITIZE_SPECIAL_CHARS);
     $user_type = $_POST['user_type'];
     $iban = filter_input(INPUT_POST, "i-ban", FILTER_SANITIZE_SPECIAL_CHARS);
 
     try {
+      $conn = db_connect();
 
         $sql = "EXEC RegisterUser ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
         $stmt = $conn->prepare($sql);
